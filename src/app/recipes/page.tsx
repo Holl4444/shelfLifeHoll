@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/app/utils/supabase/client';
 import styles from './recipes.module.css';
 import { MobileLayout } from '../components/mobile-layout';
 import { FoodItemType } from '../types/food-item';
@@ -53,10 +53,11 @@ interface Recipe {
 }
 
 // Initialize Supabase client (replace with your actual Supabase URL and key)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+// Import your configured client
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+
+// In your component:
+const supabase = createClient();
 
 export default function RecipesPage() {
   const [topMatches, setTopMatches] = useState<Recipe[]>([]);

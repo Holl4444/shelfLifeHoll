@@ -337,8 +337,9 @@ Format your response as a JSON object with an array of recipes like this:
           // Use absolute URL for API endpoint
           const baseUrl =
             process.env.NEXT_PUBLIC_BASE_URL ||
+            `https://${process.env.VERCEL_URL}` ||
             'http://localhost:3000';
-          const imageResponse = await fetch(
+            const imageResponse = await fetch(
             `${baseUrl}/api/ai-image`,
             {
               method: 'POST',
@@ -615,7 +616,9 @@ async function getRecipeImage(
     // Try a fetch to validate the default image exists
     try {
       const baseUrl =
-        process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        process.env.NEXT_PUBLIC_BASE_URL ||
+        `https://${process.env.VERCEL_URL}` ||
+        'http://localhost:3000';
       const defaultPath = '/defaultRecipeImage.jpg';
       const testResponse = await fetch(`${baseUrl}${defaultPath}`, {
         method: 'HEAD',
@@ -691,7 +694,9 @@ async function getSpoonacularImage(
 
     // Use the dedicated API endpoint ai-image
     const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      `https://${process.env.VERCEL_URL}` ||
+      'http://localhost:3000';
     const response = await fetch(`${baseUrl}/api/ai-image`, {
       method: 'POST',
       headers: {
