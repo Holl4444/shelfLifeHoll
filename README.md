@@ -121,6 +121,7 @@ npm run dev
 - **Smart Notifications** – Personalized reminders based on user preferences.  
 - **Food Donation Feature** – Suggest local food banks for items near expiry.  
 
+
 ---
 
 ## 👥 Contributors
@@ -128,7 +129,7 @@ npm run dev
 | Name     | Role                             | GitHub                                   |
 | -------- | -------------------------------- | ---------------------------------------- |
 | Louis    | Database & Frontend / Animations | [@Louis](https://github.com/L-Brookling) |
-| Holly    | Backend & AI                     | [@Holly](https://github.com/Holl4444)    |
+| Holly    | AI & Backend / Database         | [@Holly](https://github.com/Holl4444)    |
 | Danielle | Backend & AI                     | [@Dani](https://github.com/daniellem62)  |
 | Nasrin   | DevOps & Frontend & Playwright   | [@Nas](https://github.com/Nas1010)       |
 | Sam      | Backend & DevOps                 | [@Sam](https://github.com/samannetts8)   |

@@ -1,6 +1,7 @@
 export const DISH_TYPES = [
   'stir-fry',
   'stirfry',
+  'stir fry',
   'casserole',
   'soup',
   'salad',
@@ -8,7 +9,7 @@ export const DISH_TYPES = [
   'pasta',
   'noodles',
   'rice',
-  'skillet',
+  'fried rice',
   'roast',
   'bake',
   'grill',
@@ -21,6 +22,7 @@ export const DISH_TYPES = [
   'cake',
   'bread',
   'taco',
+  'tacos',
   'burrito',
   'steak',
   'chicken',
@@ -28,7 +30,15 @@ export const DISH_TYPES = [
   'tofu',
   'vegetable',
   'dessert',
-  'breakfast'
+  'breakfast',
+  'bolognese',
+  'jambalaya',
+  'cookies',
+  'omlette',
+  'omelette',
+  'omlet',
+  'fritters',
+  'fritter',
 ].sort();
 
 export const SPECIFIC_INGREDIENTS = [
@@ -60,3 +70,4 @@ export const SPECIFIC_INGREDIENTS = [
   'strawberry',
   'blueberry'
 ].sort();
+

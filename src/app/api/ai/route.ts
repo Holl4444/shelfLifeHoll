@@ -6,6 +6,11 @@ import {
   OpenAIRecipeResponse,
 } from '@/app/types/ai-recipe-types';
 import OpenAI from 'openai';
+// Added image-helper to avoid changing recipe-helper logic
+import {
+  getImageSearchQuery,
+  getFallbackDishType,
+} from '@/app/utils/image-helper';
 
 export async function getAiRecipes(ingredients: FoodItemType[]) {
   console.log('Getting recipes from OpenAI using ingredients');
@@ -384,7 +389,6 @@ Format your response as a JSON object with an array of recipes like this:
         'Error saving recipe generation history:',
         historyError
       );
-
     }
     return NextResponse.json({ recipes: allRecipes });
   } catch (error) {
@@ -692,7 +696,7 @@ function extractFoodTerms(title: string): string[] {
 
 // Update this function to fix the TypeScript errors:
 
-// Function to get recipe image from Spoonacular API
+// Function to get recipe image from Spoonacular API **Updated
 async function getSpoonacularImage(
   recipeTitle: string,
   index: number = 0
@@ -700,41 +704,34 @@ async function getSpoonacularImage(
   try {
     console.log(`Fetching Spoonacular image for: ${recipeTitle}`);
 
-    // Clean up the title for better search results
-    const cleanTitle = recipeTitle
-      .replace(/\(.*?\)/g, '') // Remove text in parentheses
-      .trim();
-
-    // Make API request to Spoonacular
-    const response = await fetch(
-      `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(
-        cleanTitle
-      )}&number=1&apiKey=${process.env.SPOONACULAR_API_KEY}`
-    );
+    // Use the dedicated API endpoint ai-image
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/ai-image`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: recipeTitle,
+      }),
+    });
 
     if (!response.ok) {
-      console.error('Spoonacular API error:', response.status);
-      throw new Error(`Spoonacular API error: ${response.status}`);
+      throw new Error(`AI image API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log(
-      'Spoonacular response:',
-      data.results ? 'Got results' : 'No results'
-    );
 
-    if (data.results && data.results.length > 0) {
-      // Return the image URL from the first result
-      return data.results[0].image;
+    if (data.imageUrl) {
+      return data.imageUrl;
+    } else {
+      throw new Error('No image returned from AI image API');
     }
-
-    // Fall back to Unsplash if no results
-    throw new Error('No recipe images found');
   } catch (error) {
-    console.error('Error fetching from Spoonacular:', error);
+    console.error('Error fetching from AI image API:', error);
 
-    // Fix the error by creating a proper Recipe object
-    // and passing the correct arguments to getRecipeImage
+    // Create proper Recipe object for fallback
     const recipeObj: Recipe = {
       title: recipeTitle,
       ingredients: [],
@@ -743,7 +740,6 @@ async function getSpoonacularImage(
       imageUrl: '',
     };
 
-    // Call getRecipeImage with proper parameters,
     return getRecipeImage(recipeObj, index);
   }
 }

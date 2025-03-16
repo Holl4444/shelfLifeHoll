@@ -1,10 +1,15 @@
 import { SpoonacularResponse } from '@/app/types/spoonacular-types';
-import { getRecipeSearchQuery } from '@/app/utils/recipe-helpers';
+import {
+  getImageSearchQuery,
+  getFallbackDishType,
+} from '@/app/utils/image-helper';
 
-// Request throttling mechanism
+// Array for queued requests added during throttling (to work around API rate limit)
 const requestQueue: Array<() => Promise<any>> = [];
 let isProcessing = false;
-let quotaExceeded = false; // Use a local variable instead of global
+
+// flag for this session (will update to database tracking when have cloned project)
+let quotaExceededInThisSession = false;
 
 async function throttledRequest<T>(fn: () => Promise<T>): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -17,7 +22,7 @@ async function throttledRequest<T>(fn: () => Promise<T>): Promise<T> {
       }
     });
 
-    processQueue();
+    processQueue(); // Start processing queue if not already
   });
 }
 
@@ -33,37 +38,46 @@ async function processQueue() {
     console.error('Error processing request:', error);
   }
 
-  // Wait 350ms between requests (staying under 1 request per second for free tier)
-  await new Promise((resolve) => setTimeout(resolve, 350));
+  // Wait between requests to avoid rate limiting
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   isProcessing = false;
-  processQueue();
+  processQueue(); // Process next in queue
 }
 
 export async function getRecipeImage(query: string): Promise<string> {
   return throttledRequest(async () => {
     try {
-      const searchQuery = getRecipeSearchQuery(query);
-      console.log('Search query for Spoonacular:', searchQuery);
-
-      if (quotaExceeded) {
-        // Use local variable instead
+      // Skip API call if we already hit the quota in this session
+      if (quotaExceededInThisSession) {
         console.log(
-          'Skipping Spoonacular API call - quota already exceeded'
+          'Skipping API call - quota exceeded in this session'
         );
-        return '/defaultRecipeImage.jpg'; // Correct path to default image
+        return '/defaultRecipeImage.jpg';
       }
 
+      // Use image search query from helper file
+      const searchQuery = getImageSearchQuery(query);
+      console.log(
+        `Image search query: "${searchQuery}" (from "${query}")`
+      );
+
+      // Use URLSearchParams - handle encoding automatically, protect against query injection, auto converts to string, works across all browsers and APIs.
+      const params = new URLSearchParams({
+        query: searchQuery,
+        number: '3',
+        sort: 'popularity',
+        apiKey: process.env.SPOONACULAR_API_KEY || '',
+      });
+
       const response = await fetch(
-        `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(
-          searchQuery
-        )}&number=3&apiKey=${process.env.SPOONACULAR_API_KEY}`
+        `https://api.spoonacular.com/recipes/complexSearch?${params.toString()}` //here just for clarity - URLParams will convert to string in template literal.
       );
 
       // Handle quota exceeded
       if (response.status === 402) {
         console.log('API quota exceeded, using default image');
-        quotaExceeded = true; // Set local variable instead
-        return '/defaultRecipeImage.jpg'; // Correct path to default image
+        quotaExceededInThisSession = true;
+        return '/defaultRecipeImage.jpg';
       }
 
       if (!response.ok) {
@@ -73,23 +87,47 @@ export async function getRecipeImage(query: string): Promise<string> {
       const data: SpoonacularResponse = await response.json();
 
       if (!data.results?.length) {
-        // Try a simpler query if no results
-        console.log('No results found, trying simplified query');
-        const simpleQuery = query.split(' ')[0]; // Just use first word
+        // Try fallback with dish type
+        const fallbackType = getFallbackDishType(query);
 
-        const fallbackResponse = await fetch(
-          `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(
-            simpleQuery
-          )}&number=1&apiKey=${process.env.SPOONACULAR_API_KEY}`
-        );
+        if (fallbackType) {
+          console.log(`Trying fallback dish type: ${fallbackType}`);
 
-        if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json();
-          if (fallbackData.results?.length) {
-            const fallbackImage = fallbackData.results[0].image;
-            return fallbackImage.startsWith('http')
-              ? fallbackImage
-              : `https://spoonacular.com/recipeImages/${fallbackImage}`;
+          const fallbackParams = new URLSearchParams({
+            query: fallbackType,
+            number: '1',
+            apiKey: process.env.SPOONACULAR_API_KEY || '',
+          });
+
+          const fallbackResponse = await fetch(
+            `https://api.spoonacular.com/recipes/complexSearch?${fallbackParams.toString()}`
+          );
+
+          // Check fallback response for quota exceeded
+          if (fallbackResponse.status === 402) {
+            console.log('API quota exceeded on fallback request');
+            quotaExceededInThisSession = true;
+            return '/defaultRecipeImage.jpg';
+          }
+
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+
+            if (
+              fallbackData.results?.length &&
+              fallbackData.results[0].image
+            ) {
+              const imageUrl =
+                fallbackData.results[0].image.startsWith('http')
+                  ? fallbackData.results[0].image
+                  : `https://spoonacular.com/recipeImages/${fallbackData.results[0].image}`;
+
+              console.log(
+                `Found fallback image for ${fallbackType}:`,
+                imageUrl
+              );
+              return imageUrl;
+            }
           }
         }
 
@@ -97,14 +135,24 @@ export async function getRecipeImage(query: string): Promise<string> {
         return '/defaultRecipeImage.jpg';
       }
 
-      const image = data.results[0].image;
-      console.log('Found image from Spoonacular:', image);
+      // Get first result with image
+      const result =
+        data.results.find((r) => r.image) || data.results[0];
 
-      return image.startsWith('http')
-        ? image
-        : `https://spoonacular.com/recipeImages/${image}`;
+      if (!result?.image) {
+        console.log('No images found in results');
+        return '/defaultRecipeImage.jpg';
+      }
+
+      // Ensure complete URL
+      const imageUrl = result.image.startsWith('http')
+        ? result.image
+        : `https://spoonacular.com/recipeImages/${result.image}`;
+
+      console.log(`Found image for "${query}": ${imageUrl}`);
+      return imageUrl;
     } catch (error) {
-      console.error('Error fetching from Spoonacular:', error);
+      console.error('Error fetching recipe image:', error);
       return '/defaultRecipeImage.jpg';
     }
   });
