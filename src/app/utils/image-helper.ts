@@ -86,6 +86,11 @@ export function getFallbackDishType(title: string): string | null {
     'burger',
     'tacos',
     'bowl',
+    'chicken breast',
+    'chicken',
+    'stuffed chicken',
+    'stuffed',
+    'casserole',
   ];
 
   // Check if title contains any dish type

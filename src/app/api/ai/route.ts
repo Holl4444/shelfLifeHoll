@@ -375,21 +375,6 @@ Format your response as a JSON object with an array of recipes like this:
 
     const allRecipes = [...formattedDbRecipes, ...recipesWithImages];
 
-    // Save the recipe generation history
-    const { error: historyError } = await supabase
-      .from('recipe_generation_history')
-      .insert({
-        user_id: user.id,
-        ingredients: ingredientList,
-        recipes: allRecipes,
-      });
-
-    if (historyError) {
-      console.error(
-        'Error saving recipe generation history:',
-        historyError
-      );
-    }
     return NextResponse.json({ recipes: allRecipes });
   } catch (error) {
     console.error('Error generating recipes:', error);

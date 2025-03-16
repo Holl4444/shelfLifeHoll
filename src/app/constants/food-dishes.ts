@@ -39,6 +39,7 @@ export const DISH_TYPES = [
   'omlet',
   'fritters',
   'fritter',
+  'casserole',
 ].sort();
 
 export const SPECIFIC_INGREDIENTS = [

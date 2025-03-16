@@ -19,33 +19,48 @@ export async function POST(request: Request) {
     //connect to database
     const supabase = await createClient();
     // Check cache first
-    if (recipeId) {
-      const { data: existingImage } = await supabase
-        .from('recipe_images')
-        .select('image_url')
-        .eq('recipe_id', recipeId) // equals as in matches a recipe id (WHERE)
-        .single(); // just first match
+    let cacheKey = recipeId;
+    if (!cacheKey && title) {
+      // Hash or normalize the title to use as a key
+      cacheKey = title
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .substring(0, 40);
+    }
 
-      if (existingImage?.image_url) {
-        return NextResponse.json({
-          imageUrl: existingImage.image_url,
-          source: 'cache',
-        });
-      }
+    // Query using either recipeId or title-based key
+    const { data: existingImage } = await supabase
+      .from('recipe_images')
+      .select('image_url')
+      .eq('recipe_id', cacheKey)
+      .single();
+
+    if (existingImage?.image_url) {
+      return NextResponse.json({
+        imageUrl: existingImage.image_url,
+        source: 'cache',
+      });
     }
 
     // No stored image? => Get image from Spoonacular with helper func
     const imageUrl = await getRecipeImage(title);
-    // Cache the result
-    if (recipeId) {
-      await supabase
-        .from('recipe_images')
-        .insert({
-        recipe_id: recipeId,
+
+    const defaultImageUrls = [
+      '/defaultRecipeImage.jpg',
+      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500',
+    ];
+
+    // Only save if it's not the default image
+    if (!defaultImageUrls.includes(imageUrl)) {
+      // Cache the result
+      await supabase.from('recipe_images').insert({
+        recipe_id: cacheKey,
         image_url: imageUrl,
         created_at: new Date().toISOString(), // date/time format standardised for machines/applications across time zones etc
       });
     }
+
+ 
     return NextResponse.json({
       imageUrl,
       source: 'spoonacular',
