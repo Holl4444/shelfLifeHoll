@@ -62,7 +62,7 @@ export function LoginForm({ isSignUp, onSuccess }: LoginFormProps) {
       </div>
     );
   }
-
+  console.log('LoginForm component rendering, isSignUp:', isSignUp);
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.inputGroup}>

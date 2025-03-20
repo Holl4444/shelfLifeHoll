@@ -10,6 +10,8 @@ type LoginResult = { error: string } | undefined;
 export async function login(
   formData: FormData
 ): Promise<LoginResult> {
+  console.log('🔐 Server Action: login() called'); 
+
   const supabase = await createClient();
 
   // type-casting here for convenience
@@ -19,14 +21,18 @@ export async function login(
     password: formData.get('password') as string,
   };
 
+  console.log(`📧 Attempting login for email: ${data.email}`); 
+
   const { error } = await supabase.auth.signInWithPassword(data);
-  console.log(`Error message: ${JSON.stringify(error)}`);
+
+  // Improved error logging
   if (error) {
-    // Return the error instead of redirecting
+    console.log(`❌ Login failed: ${error.message}`); 
     return { error: error.message };
   }
 
-  
+  console.log('✅ Login successful, redirecting to dashboard'); 
+
   revalidatePath('/dashboard', 'layout');
   redirect('/dashboard'); // Redirect to dashboard instead of homepage
 
@@ -37,6 +43,8 @@ export async function login(
 export async function signup(
   formData: FormData
 ): Promise<LoginResult> {
+  console.log('📝 Server Action: signup() called'); // Add this log
+
   const supabase = await createClient();
 
   // type-casting here for convenience
@@ -46,11 +54,16 @@ export async function signup(
     password: formData.get('password') as string,
   };
 
+  console.log(`📧 Attempting signup for email: ${data.email}`); 
+
   const { error } = await supabase.auth.signUp(data);
-  console.log(`Error message 2: ${JSON.stringify(error)}`);
+
   if (error) {
+    console.log(`❌ Signup failed: ${error.message}`); 
     redirect('/error');
   }
+
+  console.log('✅ Signup successful, redirecting to homepage'); 
 
   revalidatePath('/', 'layout');
   redirect('/');

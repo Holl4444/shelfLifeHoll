@@ -55,4 +55,43 @@ test('test with environment variables for sensitive data', async ({ page }) => {
   await page.waitForLoadState('networkidle', { timeout: 0 });
 
   await page.goto('http://localhost:3000/dashboard', { timeout: 0 });
+
+});
+
+test('login authentication flow', async ({ page }) => {
+  // Setup
+  const email = process.env.TEST_EMAIL || '';
+  const password = process.env.TEST_PASSWORD || '';
+
+  // Login
+  await page.goto('http://localhost:3000');
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="password"]', password);
+
+  // Click login and wait for either:
+  // 1. Successful redirect to dashboard
+  // 2. Success message appearing
+  await page.click('button:has-text("Log in")');
+
+  // Take a screenshot to see what happened
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'after-login.png' });
+
+  try {
+    // Check if we see the "Redirecting" message
+    const redirectingMessage = await page
+      .locator('text=Redirecting you to the dashboard')
+      .isVisible();
+    if (redirectingMessage) {
+      console.log('Client auth flow detected - waiting for redirect');
+      // Wait longer for the redirect to happen (timeout + buffer)
+      await page.waitForTimeout(3000);
+    }
+  } catch (e) {
+    // No message visible, continue
+  }
+
+  // Check final URL - should be dashboard by now regardless of flow
+  console.log('Current URL after auth handling:', page.url());
+  await expect(page).toHaveURL(/dashboard/);
 });

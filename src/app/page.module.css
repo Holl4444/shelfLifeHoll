@@ -1,5 +1,3 @@
-
-
 .page {
   --gray-rgb: 0, 0, 0;
   --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
@@ -162,15 +160,14 @@ a.secondary {
 
 .container {
   min-height: 100vh;
+  max-height: 100vh;
   background: linear-gradient(to bottom, #f0fdf4, #dcfce7);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 2rem;
   gap: 2rem;
   width: 100%;
-  height: 100%;
 }
 
 .content {
@@ -210,7 +207,7 @@ a.secondary {
   padding: 1.5rem 1rem;
   font-size: 1.125rem;
   background-color: #16a34a; /* bg-green-600 */
-}
+  }
 
 .loginButton:hover {
   background-color: #15803d; /* bg-green-700 */
@@ -223,7 +220,7 @@ a.secondary {
   background-color: transparent;
   border: 1px solid #16a34a; /* border-green-600 */
   color: #16a34a; /* text-green-600 */
-}
+    }
 
 .signupButton:hover {
   background-color: #f0fdf4; /* bg-green-50 */
@@ -244,7 +241,7 @@ a.secondary {
   gap: 0rem;
 }
 
-/* Add initial state */
+
 .images img {
   transition: all 0.3s ease;
 }
@@ -254,7 +251,7 @@ a.secondary {
   cursor: pointer;
 }
 
-/* Add media query for mobile responsiveness */
+
 @media (max-width: 480px) {
   .container {
     flex-direction: column;

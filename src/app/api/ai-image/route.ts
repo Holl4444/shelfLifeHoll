@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'; // Send info to server
 import { createClient } from '@/app/utils/supabase/server'; // Connect with Supabase - Built in protection against SQL injection and better readability (and writability for JS devs).
 import { getRecipeImage } from '@/app/services/spoon-service'; // Fetch images from Spoonacular API
 
-// Set up API endpoint ( /api/ai-image ) request is the incoming recipe from a recipe being generated or viewed (FetchRecipeImage() in app/ai/page.tsx)
+// Set up API endpoint ( /api/ai-image ). Request is the incoming recipe from a recipe being generated or viewed (FetchRecipeImage() in app/ai/page.tsx)
 export async function POST(request: Request) {
   try {
     const { recipeId, title } = await request.json();
