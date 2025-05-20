@@ -35,6 +35,13 @@ One-third of all food globally is wasted, with the UK discarding 9.52 million to
 
 ShelfLife notifies users about upcoming expiry dates, categorises ingredients for easy tracking, and integrates AI-powered recipe suggestions to make the most of available food. This helps prevent waste, save money, and promote sustainable consumption.
 
+![shelfLink4](https://github.com/user-attachments/assets/0d4ec5ab-af25-4442-bddf-80846d926852)
+
+![shelfLifeRecipeAI](https://github.com/user-attachments/assets/387209ed-8cd4-42d7-9754-bff218c45582)
+
+![shelfLifeRecipe](https://github.com/user-attachments/assets/7e7be7b4-bc6a-4339-8a9e-e4d3ed19ba76)
+
+
 ## Tech Stack
 
 **Frontend:**
