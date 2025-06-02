@@ -1,13 +1,23 @@
-
 import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-import dotenv from 'dotenv';
-import path from 'path';
-dotenv.config({ path: path.resolve(__dirname, '.env.local') });
+
+const envPath = path.resolve(__dirname, '.env.local');
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+}
+
+
+// Define baseURL to use throughout tests
+const baseURL = 'http://localhost:3000';
+
+
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -26,6 +36,7 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    baseURL,
     /* Base URL to use in actions like `await page.goto('/')`. */
     // baseURL: 'http://127.0.0.1:3000',
 
@@ -74,8 +85,19 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3000',
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 60 * 1000, // Wait up to one minute for the server to start
+    stdout: 'pipe',
+    stderr: 'pipe',
+    env: {
+      // Pass environment variables to the web server process
+      NEXT_PUBLIC_SUPABASE_URL:
+        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY:
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      TEST_EMAIL: process.env.TEST_EMAIL || '',
+      TEST_PASSWORD: process.env.TEST_PASSWORD || '',
+    },
   },
 });
